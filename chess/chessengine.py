@@ -18,7 +18,40 @@ class gamestate():
         self.board[move.endrow][move.endcol] = move.pieceMoved
         self.movelog.append(move)
         self.white = not self.white
-
+        
+    def undomoves(self):
+        if len(self.movelog) > 0:
+            last_move = self.movelog.pop()
+            self.board[last_move.startrow][last_move.startcol] = last_move.pieceMoved
+            self.board[last_move.endrow][last_move.endcol] = last_move.pieceCaptured
+            self.white = not self.white
+            
+            
+    def getvalidmoves(self):
+        return self.getallpossiblemoves() ## when there is no check
+    
+    
+    def getallpossiblemoves(self):
+        move = []
+        for r in range(len(self.board)):
+            for c in range(len(self.board[r])):
+                turn = self.board[r][c][0]
+                if(turn == 'w' and self.whitetomove) and (turn=='b' and not self.whitetomove):
+                    peice = self.board[r][c][1]
+                    if peice == 'p':
+                        self.getpawnmove(r,c,move)
+                    elif peice == 'r':
+                        self.getrookmove(r,c,move)
+                    elif peice == 'n':
+                        self.getknightmove(r, c, move)
+                    elif peice == 'b':
+                        self.getbishopmove(r, c, move)
+                    elif peice == 'q':
+                        self.getqueenmove(r, c, move)
+                    elif peice == 'k':
+                        self.getkingmove(r, c, move)        
+        
+              
 class move():
     ranktorow = {
         "1": 7, "2": 6, "3": 5, "4": 4, "5": 3, "6": 2, "7": 1, "8": 0

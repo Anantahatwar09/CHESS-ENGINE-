@@ -22,6 +22,8 @@ def main():
     screen = p.display.set_mode((WIDTH, HEIGHT))
     clock = p.time.Clock()
     gs = gamestate()
+    validmoves = gs.getvalidmoves()
+    movemade = False #flag variable for when a move is made 
     load_images()
     running = True
     sqselected = ()
@@ -45,9 +47,16 @@ def main():
                 if len(player_click) == 2:
                     chess_move = move(player_click[0], player_click[1], gs.board)
                     print(chess_move.chessnotation())
-                    gs.makemove(chess_move)
+                    if  chess_move in validmoves:
+                        gs.makemove(chess_move)  
                     sqselected = ()
                     player_click = []
+            
+            elif e.type == p.KEYDOWN:
+                if e.key == p.K_z:
+                    gs.undomoves()
+                    
+                    
 
         draw_game_state(screen, gs)
         clock.tick(MAX_FPS)
