@@ -10,6 +10,16 @@ class gamestate():
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wr", "wn", "wb", "wq", "wk", "wb", "wn", "wr"]
         ]
+        
+        self.movefunction = {
+            'p': self.getpawnmove,
+            'r': self.getrookmove,
+            'n': self.getknightmove,
+            'b': self.getbishopmove,
+            'q': self.getqueenmove,
+            'k': self.getkingmove
+        }
+
         self.white = True
         self.movelog = []
 
@@ -32,25 +42,73 @@ class gamestate():
     
     
     def getallpossiblemoves(self):
-        move = []
+        moves = []  # Initialize an empty list to store moves
         for r in range(len(self.board)):
             for c in range(len(self.board[r])):
                 turn = self.board[r][c][0]
-                if(turn == 'w' and self.whitetomove) and (turn=='b' and not self.whitetomove):
-                    peice = self.board[r][c][1]
-                    if peice == 'p':
-                        self.getpawnmove(r,c,move)
-                    elif peice == 'r':
-                        self.getrookmove(r,c,move)
-                    elif peice == 'n':
-                        self.getknightmove(r, c, move)
-                    elif peice == 'b':
-                        self.getbishopmove(r, c, move)
-                    elif peice == 'q':
-                        self.getqueenmove(r, c, move)
-                    elif peice == 'k':
-                        self.getkingmove(r, c, move)        
-        
+                if (turn == 'w' and self.white) or (turn == 'b' and not self.white):
+                    piece = self.board[r][c][1]
+                    self.movefunction[piece](r,c,moves)
+        return moves  # Return the list of moves
+    
+    def getpawnmove(self, r, c, moves):
+        if self.white:
+            # Check one square ahead
+            if r > 0 and self.board[r - 1][c] == "--":
+                moves.append(move((r, c), (r - 1, c), self.board))
+                
+                # Check two squares ahead from the starting position
+                if r == 6 and self.board[r - 2][c] == "--":
+                    moves.append(move((r, c), (r - 2, c), self.board))
+            
+            # Check for capturing moves to the left and right
+            if r > 0 and c > 0 and self.board[r - 1][c - 1][0] == 'b':
+                moves.append(move((r, c), (r - 1, c - 1), self.board))
+            if r > 0 and c < 7 and self.board[r - 1][c + 1][0] == 'b':
+                moves.append(move((r, c), (r - 1, c + 1), self.board))
+        else:
+            # Check one square ahead
+            if r < 7 and self.board[r + 1][c] == "--":
+                moves.append(move((r, c), (r + 1, c), self.board))
+                
+                # Check two squares ahead from the starting position
+                if r == 1 and self.board[r + 2][c] == "--":
+                    moves.append(move((r, c), (r + 2, c), self.board))
+            
+            # Check for capturing moves to the left and right
+            if r < 7 and c > 0 and self.board[r + 1][c - 1][0] == 'w':
+                moves.append(move((r, c), (r + 1, c - 1), self.board))
+            if r < 7 and c < 7 and self.board[r + 1][c + 1][0] == 'w':
+                moves.append(move((r, c), (r + 1, c + 1), self.board))                    
+    
+    def getrookmove(self, r, c, moves):
+        directions = ((-1, 0), (1, 0), (0, -1), (0, 1))
+        color = 'w' if self.white else 'b'
+
+        for dr, dc in directions:
+            for i in range(1, 8):
+                row, col = r + dr * i, c + dc * i
+                if 0 <= row < 8 and 0 <= col < 8:
+                    if self.board[row][col][0] == color:
+                        break  # Cannot go through your pieces
+                    moves.append(move((r, c), (row, col), self.board))
+                    if self.board[row][col][0] != '-':
+                        break  # Capture opponent's piece
+                else:
+                    break  # Out of board bounds
+
+    
+    def getknightmove(self, r, c, moves):
+        pass        
+    
+    def getbishopmove(self, r, c, moves):
+        pass
+    
+    def getqueenmove(self, r, c, moves):
+        pass                       
+    
+    def getkingmove(self, r, c, moves):
+        pass    
               
 class move():
     ranktorow = {
@@ -70,7 +128,14 @@ class move():
         self.endcol = endsq[1]
         self.pieceMoved = board[self.startrow][self.startcol]
         self.pieceCaptured = board[self.endrow][self.endcol]
-
+        self.moveid = self.startrow*1000 + self.startcol*100 + self.endrow*10 + self.endcol
+        print(self.moveid)
+        
+    def __eq__(self,other):
+        if isinstance(other,move):
+            return self.moveid == other.moveid
+        return False    
+ 
     def chessnotation(self):
         return self.rankfile(self.startcol, self.startrow) + self.rankfile(self.endcol, self.endrow)
 

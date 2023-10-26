@@ -48,13 +48,19 @@ def main():
                     chess_move = move(player_click[0], player_click[1], gs.board)
                     print(chess_move.chessnotation())
                     if  chess_move in validmoves:
-                        gs.makemove(chess_move)  
+                        gs.makemove(chess_move)
+                        movemade = True  
                     sqselected = ()
                     player_click = []
             
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z:
                     gs.undomoves()
+                    movemade = True
+        if movemade:
+            validmoves = gs.getvalidmoves()
+            movemade = False
+            
                     
                     
 
