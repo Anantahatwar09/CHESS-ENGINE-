@@ -1,4 +1,4 @@
-class gamestate():
+class ChessGameState:
     def __init__(self):
         self.board = [
             ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"],
@@ -11,45 +11,43 @@ class gamestate():
             ["wr", "wn", "wb", "wq", "wk", "wb", "wn", "wr"]
         ]
         
-        self.movefunction = {
-            'p': self.getpawnmove,
-            'r': self.getrookmove,
-            'n': self.getknightmove,
-            'b': self.getbishopmove,
-            'q': self.getqueenmove,
-            'k': self.getkingmove
+        self.move_functions = {
+            'p': self.get_pawn_moves,
+            'r': self.get_rook_moves,
+            'n': self.get_knight_moves,
+            'b': self.get_bishop_moves,
+            'q': self.get_queen_moves,
+            'k': self.get_king_moves
         }
 
-        self.white = True
-        self.movelog = []
+        self.is_white_turn = True
+        self.move_log = []
 
-    def makemove(self, move):
-        self.board[move.startrow][move.startcol] = "--"
-        self.board[move.endrow][move.endcol] = move.pieceMoved
-        self.movelog.append(move)
-        self.white = not self.white
+    def make_move(self, move):
+        self.board[move.start_row][move.start_col] = "--"
+        self.board[move.end_row][move.end_col] = move.piece_moved
+        self.move_log.append(move)
+        self.is_white_turn = not self.is_white_turn
         
-    def undomoves(self):
-        if len(self.movelog) > 0:
-            last_move = self.movelog.pop()
-            self.board[last_move.startrow][last_move.startcol] = last_move.pieceMoved
-            self.board[last_move.endrow][last_move.endcol] = last_move.pieceCaptured
-            self.white = not self.white
+    def undo_moves(self):
+        if len(self.move_log) > 0:
+            last_move = self.move_log.pop()
+            self.board[last_move.start_row][last_move.start_col] = last_move.piece_moved
+            self.board[last_move.end_row][last_move.end_col] = last_move.piece_captured
+            self.is_white_turn = not self.is_white_turn
             
-            
-    def getvalidmoves(self):
-        return self.getallpossiblemoves() ## when there is no check
+    def get_valid_moves(self):
+        return self.get_all_possible_moves() ## when there is no check
     
-    
-    def getallpossiblemoves(self):
+    def get_all_possible_moves(self):
         moves = []  # Initialize an empty list to store moves
         for r in range(len(self.board)):
             for c in range(len(self.board[r])):
-                turn = self.board[r][c][0]
-                if (turn == 'w' and self.white) or (turn == 'b' and not self.white):
+                color = self.board[r][c][0]
+                if (color == 'w' and self.is_white_turn) or (color == 'b' and not self.is_white_turn):
                     piece = self.board[r][c][1]
-                    self.movefunction[piece](r,c,moves)
-        return moves  # Return the list of moves
+                    self.move_functions[piece](r, c, moves)
+        return moves  
     
     def getpawnmove(self, r, c, moves):
         if self.white:
@@ -110,35 +108,35 @@ class gamestate():
     def getkingmove(self, r, c, moves):
         pass    
               
-class move():
-    ranktorow = {
+class ChessMove:
+    rank_to_row = {
         "1": 7, "2": 6, "3": 5, "4": 4, "5": 3, "6": 2, "7": 1, "8": 0
     }
-    rowstorank = {v: k for k, v in ranktorow.items()}
+    row_to_rank = {v: k for k, v in rank_to_row.items()}
 
-    filetocol = {
+    file_to_col = {
         "a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7
     }
-    colstofile = {v: k for k, v in filetocol.items()}
+    col_to_file = {v: k for k, v in file_to_col.items()}
 
-    def __init__(self, startsq, endsq, board):
-        self.startrow = startsq[0]
-        self.startcol = startsq[1]
-        self.endrow = endsq[0]
-        self.endcol = endsq[1]
-        self.pieceMoved = board[self.startrow][self.startcol]
-        self.pieceCaptured = board[self.endrow][self.endcol]
-        self.moveid = self.startrow*1000 + self.startcol*100 + self.endrow*10 + self.endcol
-        print(self.moveid)
+    def __init__(self, start_sq, end_sq, board):
+        self.start_row = start_sq[0]
+        self.start_col = start_sq[1]
+        self.end_row = end_sq[0]
+        self.end_col = end_sq[1]
+        self.piece_moved = board[self.start_row][self.start_col]
+        self.piece_captured = board[self.end_row][self.end_col]
+        self.move_id = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col
+        print(self.move_id)
         
-    def __eq__(self,other):
-        if isinstance(other,move):
-            return self.moveid == other.moveid
+    def __eq__(self, other):
+        if isinstance(other, ChessMove):
+            return self.move_id == other.move_id
         return False    
  
-    def chessnotation(self):
-        return self.rankfile(self.startcol, self.startrow) + self.rankfile(self.endcol, self.endrow)
+    def chess_notation(self):
+        return self.rank_file(self.start_col, self.start_row) + self.rank_file(self.end_col, self.end_row)
 
-    def rankfile(self, r, c):
-        return self.colstofile[c] + self.rowstorank[r]
+    def rank_file(self, r, c):
+        return self.col_to_file[c] + self.row_to_rank[r]
 
